@@ -7,45 +7,45 @@
 
 import UIKit
 
-let shapeLayer = CAShapeLayer()
+
 
 class ViewController: UIViewController, URLSessionDownloadDelegate {
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
-//        print(totalBytesWritten,totalBytesExpectedToWrite)
-        let procentage = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
-        
-        print(procentage)
-        
-    }
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
-        print ("Finished downloading file")
-    }
+    let shapeLayer = CAShapeLayer()
     
-    
+    let percentageLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Start"
+        label.textAlignment = .center
+        label.font = UIFont.boldSystemFont(ofSize: 32)
+        return label
+    }()
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        view.addSubview(percentageLabel)
+        percentageLabel.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
+        percentageLabel.center = view.center
         // drawing a circle
-        
-        let center = view.center
-        
-        // create track layer
         let trackLayer = CAShapeLayer()
-        let circularPath = UIBezierPath(arcCenter: center, radius: 100, startAngle: -CGFloat.pi / 2, endAngle: 2 * CGFloat.pi, clockwise: true)
+        let circularPath = UIBezierPath(arcCenter: .zero, radius: 100, startAngle: 0, endAngle: 2 * CGFloat.pi, clockwise: true)
         trackLayer.path = circularPath.cgPath
         
         trackLayer.strokeColor = UIColor.lightGray.cgColor
         trackLayer.lineWidth = 10
         trackLayer.fillColor = UIColor.clear.cgColor
         trackLayer.lineCap = CAShapeLayerLineCap.round
+        trackLayer.position = view.center
         view.layer.addSublayer(trackLayer)
         
-        
+        // create track layer
         shapeLayer.path = circularPath.cgPath
         
         shapeLayer.strokeColor = UIColor.red.cgColor
         shapeLayer.lineWidth = 10
         shapeLayer.fillColor = UIColor.clear.cgColor
         shapeLayer.lineCap = CAShapeLayerLineCap.round
+        shapeLayer.position = view.center
+        shapeLayer.transform = CATransform3DMakeRotation(-CGFloat.pi / 2, 0, 0, 1)
         
         
         shapeLayer.strokeEnd = 0
@@ -59,6 +59,8 @@ class ViewController: UIViewController, URLSessionDownloadDelegate {
     
     private func beginDownloadingFile(){
         print("Strating Download")
+        shapeLayer.strokeEnd = 0
+        
         let cinfiguration = URLSessionConfiguration.default
         let operationQueue = OperationQueue()
         let urlSession = URLSession(configuration: cinfiguration, delegate: self, delegateQueue: operationQueue)
@@ -67,6 +69,23 @@ class ViewController: UIViewController, URLSessionDownloadDelegate {
         let dwonloadTask = urlSession.downloadTask(with: url)
         dwonloadTask.resume()
         
+    }
+    
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+        let percentage = CGFloat(totalBytesWritten) / CGFloat(totalBytesExpectedToWrite)
+        
+        DispatchQueue.main.async {
+            
+            self.percentageLabel.text = "\(Int(percentage * 100))%"
+            
+            self.shapeLayer.strokeEnd = percentage
+        }
+        
+        print(percentage)
+        
+    }
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        print ("Finished downloading file")
     }
     
     // add animation
@@ -78,7 +97,7 @@ class ViewController: UIViewController, URLSessionDownloadDelegate {
         
         basicAnimation.duration = 2
         
-    
+        
         basicAnimation.fillMode = CAMediaTimingFillMode.forwards
         basicAnimation.isRemovedOnCompletion = false
         
@@ -89,7 +108,6 @@ class ViewController: UIViewController, URLSessionDownloadDelegate {
         print ("Walahala!!")
         
         beginDownloadingFile()
-        animateCircle()
     }
 }
 
