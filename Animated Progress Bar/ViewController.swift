@@ -10,7 +10,7 @@ import UIKit
 
 
 class ViewController: UIViewController, URLSessionDownloadDelegate {
-    let shapeLayer = CAShapeLayer()
+    var shapeLayer: CAShapeLayer!
     
     var pulsatingLayer: CAShapeLayer!
     
@@ -34,59 +34,50 @@ class ViewController: UIViewController, URLSessionDownloadDelegate {
     @objc private func handleEnterForeground(){
         animatePulsatingLayer()
     }
+    //create pulsating layer
+    private func createCircleShape(strokeColor: UIColor, fillColor: UIColor) -> CAShapeLayer{
+        let layer = CAShapeLayer()
+        let circularPath = UIBezierPath(arcCenter: .zero, radius: 100, startAngle: 0, endAngle: 2 * CGFloat.pi, clockwise: true)
+        layer.path = circularPath.cgPath
+        layer.strokeColor = strokeColor.cgColor
+        layer.lineWidth = 20
+        layer.fillColor = fillColor.cgColor
+        layer.lineCap = CAShapeLayerLineCap.round
+        layer.position = view.center
+        return layer
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupNotificationObservers()
         
-        
         view.backgroundColor = UIColor.backgroundColor
-        // drawing a circle
-        let trackLayer = CAShapeLayer()
-        let circularPath = UIBezierPath(arcCenter: .zero, radius: 100, startAngle: 0, endAngle: 2 * CGFloat.pi, clockwise: true)
-        //create pulsating layer
-        pulsatingLayer = CAShapeLayer()
-        pulsatingLayer.path = circularPath.cgPath
-        pulsatingLayer.strokeColor = UIColor.clear.cgColor
-        pulsatingLayer.lineWidth = 10
-        pulsatingLayer.fillColor = UIColor.pulsatingFillColor.cgColor
-        pulsatingLayer.lineCap = CAShapeLayerLineCap.round
-        pulsatingLayer.position = view.center
-        view.layer.addSublayer(pulsatingLayer)
         
-        trackLayer.path = circularPath.cgPath
-        trackLayer.strokeColor = UIColor.trackStrokeColor.cgColor
-        trackLayer.lineWidth = 20
-        trackLayer.fillColor = UIColor.backgroundColor.cgColor
-        trackLayer.lineCap = CAShapeLayerLineCap.round
-        trackLayer.position = view.center
-        view.layer.addSublayer(trackLayer)
-        
-       
-        
-        animatePulsatingLayer()
-        
-        // create track layer
-        shapeLayer.path = circularPath.cgPath
-        shapeLayer.strokeColor = UIColor.outlineStrokeColor.cgColor
-        shapeLayer.lineWidth = 20
-        shapeLayer.fillColor = UIColor.clear.cgColor
-        shapeLayer.lineCap = CAShapeLayerLineCap.round
-        shapeLayer.position = view.center
-        shapeLayer.transform = CATransform3DMakeRotation(-CGFloat.pi / 2, 0, 0, 1)
-        
-        
-        shapeLayer.strokeEnd = 0
-        
-        view.layer.addSublayer(shapeLayer)
+        setupCircleLayers()
         
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTap)))
         
-        
+        setupPercentageLable()
+    }
+    private func setupPercentageLable(){
         view.addSubview(percentageLabel)
         percentageLabel.frame = CGRect(x: 0, y: 0, width: 100, height: 100)
         percentageLabel.center = view.center
     }
+    private func setupCircleLayers(){
+        pulsatingLayer = createCircleShape(strokeColor: .clear, fillColor: UIColor.pulsatingFillColor)
+        view.layer.addSublayer(pulsatingLayer)
+        animatePulsatingLayer()
+        
+        let trackLayer = createCircleShape(strokeColor: .trackStrokeColor, fillColor: .backgroundColor)
+        view.layer.addSublayer(trackLayer)
+        
+        shapeLayer = createCircleShape(strokeColor: .outlineStrokeColor, fillColor: .clear)
+        shapeLayer.transform = CATransform3DMakeRotation(-CGFloat.pi / 2, 0, 0, 1)
+        shapeLayer.strokeEnd = 0
+        view.layer.addSublayer(shapeLayer)
+    }
+    
     private func animatePulsatingLayer(){
         let animation = CABasicAnimation(keyPath: "transform.scale")
         animation.toValue = 1.3
