@@ -9,7 +9,18 @@ import UIKit
 
 let shapeLayer = CAShapeLayer()
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, URLSessionDownloadDelegate {
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+//        print(totalBytesWritten,totalBytesExpectedToWrite)
+        let procentage = Float(totalBytesWritten) / Float(totalBytesExpectedToWrite)
+        
+        print(procentage)
+        
+    }
+    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+        print ("Finished downloading file")
+    }
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -43,19 +54,42 @@ class ViewController: UIViewController {
         
         view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTap)))
     }
-    @objc private func handleTap(){
-        print ("Walahala!!")
-        // add animation
+    
+    let urlString = "https://firebasestorage.googleapis.com/v0/b/firestorechat-e64ac.appspot.com/o/intermediate_training_rec.mp4?alt=media&token=e20261d0-7219-49d2-b32d-367e1606500c"
+    
+    private func beginDownloadingFile(){
+        print("Strating Download")
+        let cinfiguration = URLSessionConfiguration.default
+        let operationQueue = OperationQueue()
+        let urlSession = URLSession(configuration: cinfiguration, delegate: self, delegateQueue: operationQueue)
+        
+        guard let url = URL(string: urlString) else {return}
+        let dwonloadTask = urlSession.downloadTask(with: url)
+        dwonloadTask.resume()
+        
+    }
+    
+    // add animation
+    fileprivate func animateCircle() {
+        
         let basicAnimation = CABasicAnimation(keyPath: "strokeEnd")
         
         basicAnimation.toValue = 1
         
         basicAnimation.duration = 2
         
+    
         basicAnimation.fillMode = CAMediaTimingFillMode.forwards
         basicAnimation.isRemovedOnCompletion = false
         
         shapeLayer.add(basicAnimation, forKey: "Basic")
+    }
+    
+    @objc private func handleTap(){
+        print ("Walahala!!")
+        
+        beginDownloadingFile()
+        animateCircle()
     }
 }
 
